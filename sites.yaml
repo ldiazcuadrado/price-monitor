@@ -1,0 +1,62 @@
+# Site definitions for price-monitor. Validate with: price-monitor sites validate
+sites:
+  books-toscrape:
+    # Sandbox site built for scraping practice: https://books.toscrape.com
+    start_urls:
+      - https://books.toscrape.com/catalogue/page-1.html
+    currency: GBP
+    key: upc
+    pagination:
+      type: next_link
+      selector: li.next a
+    item_selector: article.product_pod
+    fields:
+      title:
+        css: h3 a
+        attr: title
+      url:
+        css: h3 a
+        attr: href
+      price:
+        css: p.price_color
+        transforms:
+          - {type: price, locale: en_GB, currency: GBP}
+      rating:
+        css: p.star-rating
+        attr: class
+        transforms:
+          - {type: regex, pattern: "star-rating (\\w+)"}
+          - type: map
+            values: {One: 1, Two: 2, Three: 3, Four: 4, Five: 5}
+    detail:
+      fields:
+        upc:
+          css: table.table-striped tr:first-child td
+        category:
+          css: ul.breadcrumb li:nth-last-child(2) a
+        stock:
+          css: p.availability
+          transforms:
+            - {type: regex, pattern: "\\((\\d+) available\\)"}
+            - {type: int}
+          default: 0
+    request:
+      delay_seconds: 0.25
+      concurrency: 4
+      timeout_seconds: 20
+      max_retries: 3
+      encoding: utf-8  # the site omits the charset, which would mangle "£"
+    thresholds:
+      min_percent: 1
+
+alerts:
+  rules:
+    - name: price-drop-10
+      type: price_drop
+      min_percent: 10
+    - name: cheap-poetry
+      type: below_target
+      target: 15
+      title_regex: poetry|poems
+    - name: back-in-stock
+      type: back_in_stock

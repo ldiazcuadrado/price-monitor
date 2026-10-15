@@ -1,0 +1,68 @@
+# Template for a typical server-rendered shop. The domain is a placeholder (example.com is
+# reserved, nothing is fetched until you point start_urls at a site you may scrape).
+sites:
+  example-shop:
+    start_urls:
+      - https://shop.example.com/category/headphones?page=1
+    currency: EUR
+    key: sku
+    # Pages are numbered; stop at max_pages or at the first page with no items.
+    pagination:
+      type: url_template
+      template: https://shop.example.com/category/headphones?page={page}
+      first_page: 1
+      max_pages: 20
+    item_selector: li.product-card
+    fields:
+      title:
+        css: a.product-card__title
+      url:
+        css: a.product-card__title
+        attr: href
+      price:
+        css: span.price
+        # "1.299,00 EUR" with a European number format
+        transforms:
+          - {type: price, locale: de_DE, currency: EUR}
+      sku:
+        # No selector: read the attribute from the item element itself.
+        attr: data-sku
+      in_stock:
+        css: span.availability
+        transforms:
+          - {type: contains, text: in stock}
+    # Fields that only exist on the product page.
+    detail:
+      fields:
+        category:
+          css: nav.breadcrumb li:last-child
+        brand:
+          css: span.brand
+          transforms:
+            - {type: strip}
+          default: ""
+    request:
+      delay_seconds: 2
+      concurrency: 2
+      headers:
+        Accept-Language: de-DE,de;q=0.9
+    # Set renderer to "browser" for pages that build the list with JavaScript
+    # (requires: pip install price-monitor[browser]).
+    renderer: http
+    thresholds:
+      min_percent: 2
+      min_absolute: 1
+
+alerts:
+  rules:
+    - name: drop-over-10-percent
+      type: price_drop
+      min_percent: 10
+      notify: [telegram, email]
+    - name: bargain
+      type: below_target
+      target: 99.0
+      sites: [example-shop]
+    - name: restocked
+      type: back_in_stock
+      notify: [webhook]
