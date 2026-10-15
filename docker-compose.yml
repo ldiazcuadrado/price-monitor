@@ -1,0 +1,18 @@
+services:
+  price-monitor:
+    build: .
+    image: price-monitor:local
+    command: ["watch", "--interval", "6h", "--report-dir", "/data/reports"]
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - monitor-data:/data
+      # Edit sites.yaml on the host without rebuilding the image.
+      - ./sites.yaml:/app/sites.yaml:ro
+    stop_signal: SIGTERM
+    stop_grace_period: 2m
+
+volumes:
+  monitor-data:
