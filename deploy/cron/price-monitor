@@ -1,0 +1,5 @@
+# /etc/cron.d/price-monitor
+# Scrape every six hours, offset from the hour to avoid the top-of-hour rush.
+# Secrets come from the env file; cron itself runs with an empty environment.
+MAILTO=""
+17 */6 * * * price-monitor cd /opt/price-monitor && set -a && . /etc/price-monitor/env && set +a && .venv/bin/price-monitor scrape >> /var/log/price-monitor.log 2>&1

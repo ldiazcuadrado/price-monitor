@@ -1,0 +1,10 @@
+[Unit]
+Description=Run price-monitor every six hours
+
+[Timer]
+OnCalendar=*-*-* 00/6:00:00
+RandomizedDelaySec=15min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

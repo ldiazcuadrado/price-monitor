@@ -1,0 +1,16 @@
+[Unit]
+Description=price-monitor single scrape
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=price-monitor
+WorkingDirectory=/opt/price-monitor
+EnvironmentFile=/etc/price-monitor/env
+ExecStart=/opt/price-monitor/.venv/bin/price-monitor scrape
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/price-monitor

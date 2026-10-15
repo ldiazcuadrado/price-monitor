@@ -1,0 +1,24 @@
+[Unit]
+Description=price-monitor watcher
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=price-monitor
+WorkingDirectory=/opt/price-monitor
+EnvironmentFile=/etc/price-monitor/env
+ExecStart=/opt/price-monitor/.venv/bin/price-monitor watch --interval 6h
+# SIGTERM lets the current scrape finish and the database close cleanly.
+KillSignal=SIGTERM
+TimeoutStopSec=120
+Restart=on-failure
+RestartSec=30
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/price-monitor
+
+[Install]
+WantedBy=multi-user.target
